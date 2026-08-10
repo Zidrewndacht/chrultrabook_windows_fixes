@@ -6,5 +6,5 @@ Random, assorted fixes for small annoyances in specific Chrultrabooks running Wi
 
 Future improvements (To Do):
  - Set RGB/BGR ClearType mode automatically on screen rotate
- - Fork/update (RightKeyboard)[https://github.com/mnivet/RightKeyboard] to make it remember disconnected Bluetooth keyboards/mice to avoid them asking layout again every time (not really a specific Chrultrabook bug though -- just noted here as it's relevant for my Redrix with US keyboard in an otherwise ABNT2 region).
+ - Fork/update [RightKeyboard](https://github.com/mnivet/RightKeyboard) to make it remember disconnected Bluetooth keyboards/mice to avoid them asking layout again every time (not really a specific Chrultrabook bug though -- just noted here as it's relevant for my Redrix with US keyboard in an otherwise ABNT2 region).
  - ...
