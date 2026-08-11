@@ -3,6 +3,7 @@ Random, assorted fixes for small annoyances in specific Chrultrabooks running Wi
  - `patch_lock_to_delete.py` converts the Lock key (above Backspace) onto a more useful (and less workflow-intrusive) Delete key. Tested on Redrix and Pantheon;
  - `keyboard speed filter fix.reg` fixes the wrong keyboard repeat speed (very slow after waking up from sleep) -- Tested on Panthen, unnecessary on Redrix;
  - `scrap_dptf_drivers.ps1` gets rid of DPTF drivers (which cause issues in Pantheon, limiting performance on battery to ~9W);
+ - `install-cleartype-BGR-fix` (which creates a scheduled task for `cleartype.ps1` that has to be in a place it won't be deleted from): automatically changes display to BGR mode when rotated. This is also intended to auto-disable the Precision Touchpad on slate mode, but that functionality isn't currently working, only the BGR fix.
 
 Future improvements (To Do):
  - Set RGB/BGR ClearType mode automatically on screen rotate
