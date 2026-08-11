@@ -1,4 +1,4 @@
-Random, assorted fixes for small annoyances in specific Chrultrabooks running Windows. Some are device-specific.
+Assorted selection fixes for small annoyances in specific Chrultrabooks running Windows. Some are device-specific. They're being built and added according to my own usage and are mostly *"educated vibecoded"* scripts at different levels of (lack of) polish. They should still do their job.
 
  - `patch_lock_to_delete.py` converts the Lock key (above Backspace) onto a more useful (and less workflow-intrusive) Delete key. Tested on Redrix and Pantheon;
  - `keyboard speed filter fix.reg` fixes the wrong keyboard repeat speed (very slow after waking up from sleep) -- Tested on Panthen, unnecessary on Redrix;
