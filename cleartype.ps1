@@ -2,8 +2,10 @@
 <#
 .SYNOPSIS
     1. Switches ClearType to BGR when any display is rotated 180°.
-    2. Disables Precision Touchpad when device enters slate (tablet) mode.
+    2. Disables Precision Touchpad when device enters slate (tablet) mode via Ctrl+Win+F24 shortcut
     Event-driven via hidden NativeWindow + WM_DISPLAYCHANGE / WM_SETTINGCHANGE.
+    Confirmed working on REDRIX.
+    This totally works, but this implementation takes ~27MB of RAM!
 #>
 
 Add-Type -TypeDefinition @"
@@ -40,6 +42,18 @@ public class DisplayChangeListener : NativeWindow
     private const uint BGR = 0x0000;
     private const uint RGB = 0x0001;
     private const uint FE_FONTSMOOTHINGCLEARTYPE = 0x0002;
+
+    // ----- Key simulation for touchpad toggle -----
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
+
+    private const byte VK_CONTROL = 0x11;
+    private const byte VK_LWIN   = 0x5B;
+    private const byte VK_F24    = 0x87;
+
+    private const uint KEYEVENTF_KEYDOWN = 0x0000;
+    private const uint KEYEVENTF_KEYUP   = 0x0002;
+    // ----------------------------------------------
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern bool SystemParametersInfoW(uint uiAction, uint uiParam, uint pvParam, uint fWinIni);
@@ -189,27 +203,46 @@ public class DisplayChangeListener : NativeWindow
                           needBGR ? "180 deg -> BGR" : "Normal -> RGB");
     }
 
+    private void SendToggleHotkey()
+    {
+        keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYDOWN, UIntPtr.Zero);
+        keybd_event(VK_LWIN,    0, KEYEVENTF_KEYDOWN, UIntPtr.Zero);
+        keybd_event(VK_F24,     0, KEYEVENTF_KEYDOWN, UIntPtr.Zero);
+
+        keybd_event(VK_F24,     0, KEYEVENTF_KEYUP,   UIntPtr.Zero);
+        keybd_event(VK_LWIN,    0, KEYEVENTF_KEYUP,   UIntPtr.Zero);
+        keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP,   UIntPtr.Zero);
+    }
+
     public void SetTouchpadEnabled(bool enabled)
     {
-        Registry.SetValue(
-            @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad\Status",
-            "Enabled",
-            enabled ? 1 : 0,
-            RegistryValueKind.DWord);
+        // Read current state from the registry (read‑only, but we can read it)
+        int current = 1; // default enabled
+        try
+        {
+            using (var key = Registry.CurrentUser.OpenSubKey(
+                @"SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad\Status"))
+            {
+                if (key != null)
+                    current = (int)key.GetValue("Enabled", 1);
+            }
+        }
+        catch { }
 
-        IntPtr result = IntPtr.Zero;
-        Win32Notify.SendMessageTimeout(
-            Win32Notify.HWND_BROADCAST,
-            Win32Notify.WM_SETTINGCHANGE,
-            IntPtr.Zero,
-            "Environment",
-            Win32Notify.SMTO_ABORTIFHUNG,
-            5000,
-            out result);
-
-        Console.WriteLine("[{0:HH:mm:ss}] Touchpad: {1}",
-                          DateTime.Now,
-                          enabled ? "Enabled" : "Disabled");
+        bool currentlyEnabled = (current == 1);
+        if (currentlyEnabled != enabled)
+        {
+            SendToggleHotkey();
+            Console.WriteLine("[{0:HH:mm:ss}] Touchpad toggled to {1}",
+                              DateTime.Now,
+                              enabled ? "Enabled" : "Disabled");
+        }
+        else
+        {
+            Console.WriteLine("[{0:HH:mm:ss}] Touchpad already {1}, no toggle needed.",
+                              DateTime.Now,
+                              enabled ? "Enabled" : "Disabled");
+        }
     }
 
     private void SetRegDword(RegistryKey baseKey, string keyPath, string name, int value)
